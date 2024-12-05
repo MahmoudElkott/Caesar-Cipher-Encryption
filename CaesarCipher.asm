@@ -32,10 +32,10 @@ caesar macro al, shift
    add al, shift
    jmp exit
 
-   ; If the character is 'X', 'Y', 'Z', 'x', 'y', 'z', subtract (26 - shift)
+   ; If the character is 'X', 'Y', 'Z', 'x', 'y', 'z'
    adjust:
-   sub al, 26
    add al, shift
+   sub al, 26
    jmp exit
 
    exit:
