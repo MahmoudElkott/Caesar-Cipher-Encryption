@@ -2,7 +2,7 @@
 
 .data
 msg_input db "Enter a 10-character string: $"
-msg_key db "Enter Key: $"
+msg_key db "Enter Key (2 digits):$"
 msg_shift db 10,13,"Encrypted text: $" 
 buffer1 db 10 dup (00)    ; Allocate 10 bytes for buffer1
 buffer2 db 10 dup(00), '$' ; Allocate 10 bytes for buffer2
@@ -16,7 +16,7 @@ caesar macro al, shift
    cmp al, 'A' ; AL < 'A' ?
    jb exit     ; if less, not a letter, exit
    cmp al, 'Z' ; AL = 'Z' ?
-   je adjust   ; if equal, go to adjust (AL - 23)
+   je adjust   ; if equal, go to adjust
    cmp al, 'z' ; AL = 'z' ?
    je adjust   ; if equal, go to adjust
    cmp al, 'Y' ; AL = 'Y' ?
@@ -27,7 +27,7 @@ caesar macro al, shift
    je adjust   ; if equal, go to adjust
    cmp al, 'x' ; AL = 'x' ?
    je adjust   ; if equal, go to adjust
-
+                                        
    ; If the character is not 'X', 'Y', 'Z', 'x', 'y', 'z', add shift
    add al, shift
    jmp exit
@@ -60,17 +60,37 @@ caesar macro al, shift
    mov [si], al      ; Store each character in buffer1
    inc si 
    loop input                      
-
+ 
+   ; Add a new line after reading the key
+   mov ah, 02h
+   mov dl, 0Dh       ; Carriage return
+   int 21h
+   mov dl, 0Ah       ; Line feed
+   int 21h
+   
    ; Display "Enter Key: " message
    mov ah, 09h
    lea dx, msg_key
-   int 21h
-
-   ; Read the shift key from the keyboard
+   int 21h 
+   
+   ; Read the first digit of the key
    mov ah, 01h
    int 21h
    sub al, '0'       ; Convert ASCII to integer
-   mov [key], al
+   mov bl, al        ; Store first digit in BL
+
+   ; Read the second digit of the key
+   mov ah, 01h
+   int 21h
+   sub al, '0'       ; Convert ASCII to integer
+   mov bh, al        ; Store second digit in BH
+
+   ; Combine the two digits to form the decimal key
+   mov al, bl
+   mov ah, 0Ah       ; Multiply first digit by 10
+   mul ah
+   add al, bh        ; Add the second digit
+   mov [key], al     ; Store the combined key
 
    mov dx, 0000
    mov cx, 0010  ; Reset counter to 10
@@ -99,4 +119,4 @@ caesar macro al, shift
    ; Exit
    mov ah, 4ch
    int 21h 
-   end
+end
